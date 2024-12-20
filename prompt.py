@@ -24,7 +24,7 @@ DEFAULT_MEME_IMAGE = "https://example.com/default_meme.jpg"
 
 
 async def analyze_user_input(user_input: str) -> dict:
-    print(user_input)
+    print("=========user_input=========", user_input)
     """
     Analyzes user input and generates a response using the OpenAI API.
 
@@ -162,7 +162,7 @@ async def analyze_user_input(user_input: str) -> dict:
                                             "answer_type": "card",
                                             "response": {
                                             "image_link": "<appropriate_tarot_card_image>.png",
-                                            "text": "Provide a positive tarot card prediction based on sentiment."
+                                            "text": "Provide a positive tarot card reading result based on sentiment."
                                             }
                                         }
                                         },
@@ -209,7 +209,7 @@ async def analyze_user_input(user_input: str) -> dict:
                                 "properties": {
                                     "text": {
                                         "type": "string",
-                                        "description": "The conversational response text, required if 'answer_type' is 'ชวนคุย'.",
+                                        "description": "The conversational response text, required if 'answer_type' is 'ชวนคุย' or 'card' ",
                                     },
                                     "image_link": {
                                         "type": "string",
@@ -235,7 +235,7 @@ async def analyze_user_input(user_input: str) -> dict:
             presence_penalty=0,
         )
 
-        print(response)
+        print("=========response=========", response)
 
         # Parse the assistant's response
         assistant_reply = response.choices[0].message.content
