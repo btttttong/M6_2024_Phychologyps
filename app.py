@@ -103,7 +103,6 @@ async def card(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     context.user_data["awaiting_thoughts"] = True  # Set a flag for the next input
 
 
-
 async def handle_thoughts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Process the user's thoughts and continue chatting until the response is not chit-chat."""
     user_thought = update.message.text.strip()

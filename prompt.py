@@ -20,7 +20,7 @@ client.api_key = OPENAI_API_KEY
 
 # Default images for fallback
 DEFAULT_CARD_IMAGE = "https://example.com/default_card.png"
-DEFAULT_MEME_IMAGE = "https://example.com/default_meme.jpg"
+DEFAULT_MEME_IMAGE = "https://media1.giphy.com/media/hECJDGJs4hQjjWLqRV/giphy.gif?cid=6c09b952gwxhe22lcif92104ht5gph5qu62jbs7acqq8o4p9&ep=v1_gifs_search&rid=giphy.gif&ct=g"
 
 
 async def analyze_user_input(user_input: str) -> dict:
@@ -162,7 +162,7 @@ async def analyze_user_input(user_input: str) -> dict:
                                             "answer_type": "card",
                                             "response": {
                                             "image_link": "<appropriate_tarot_card_image>.png",
-                                            "text": "Provide a positive tarot card reading result based on sentiment."
+                                            "text": "Provide provide a brief description of the card based on sentiment and then engage the user in a conversation."
                                             }
                                         }
                                         },
@@ -171,7 +171,7 @@ async def analyze_user_input(user_input: str) -> dict:
                                         "response": {
                                             "answer_type": "meme",
                                             "response": {
-                                            "image_link": "<appropriate_meme_link>.jpg"
+                                            "image_link": "Provide gif meme link that existing in internext base on user sentimental make sure it can open in telegram."
                                             }
                                         }
                                         }
