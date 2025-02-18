@@ -17,6 +17,7 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 from prompt import analyze_user_input, DEFAULT_CARD_IMAGE, DEFAULT_MEME_IMAGE
+from prefect import flow, task
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
