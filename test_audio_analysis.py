@@ -1,7 +1,7 @@
 import asyncio
 import json
 import os
-from prompt_speeach import analyze_user_audio_input, evaluate_accuracy  # Replace with your actual filename
+from validate_prompt_speeach import analyze_user_audio_input, evaluate_accuracy
 
 # Get list of converted WAV files (ONLY from studio001/middle/)
 converted_wav_path = "converted_wav/studio001/middle"  # Limit to studio001

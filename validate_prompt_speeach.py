@@ -5,6 +5,9 @@ import base64
 import asyncio
 from openai import OpenAI
 from sklearn.metrics import classification_report
+from feature_detection import extract_features
+import re
+
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
@@ -26,18 +29,24 @@ if not os.getenv("OPENAI_API_KEY"):
     logger.error("OPENAI_API_KEY is not set in environment variables.")
     raise EnvironmentError("Missing OPENAI_API_KEY.")
 
-import re
-import json
-import logging
-
 logger = logging.getLogger("prompt_speech")
 
 async def analyze_user_audio_input(audio_file_path: str) -> dict:
     """Processes a single audio file asynchronously by transcribing and detecting emotions."""
     try:
-        # Read audio file and encode it in base64
+        # ✅ Extract features
+        features = extract_features(audio_file_path)
+        if not features:
+            logger.error(f"Feature extraction failed for {audio_file_path}")
+            return {"error": "Feature extraction failed."}
+        print(f"✅ Features extracted is {features}")
+
+        # ✅ Read and encode audio file in base64
         with open(audio_file_path, "rb") as audio_file:
             audio_data = base64.b64encode(audio_file.read()).decode("utf-8")
+
+        # ✅ Prepare feature data as a string
+        feature_text = json.dumps(features, indent=2)
 
         response = client.chat.completions.create(
             model="gpt-4o-audio-preview",
@@ -45,21 +54,47 @@ async def analyze_user_audio_input(audio_file_path: str) -> dict:
                 {
                     "role": "system",
                     "content": (
-                        "You are an AI assistant that processes audio input by first transcribing it into text and then analyzing the text "
+                        "You are an AI assistant that processes Thai audio input by first transcribing it into text and then analyzing the text "
                         "to extract emotions based on Ekman's theory (anger, disgust, fear, happiness, sadness, surprise, and neutral). "
-                        "It also detects early signs of depression based on linguistic patterns.\n\n"
+                        "Additionally, it detects early signs of depression based on linguistic patterns and acoustic features.\n\n"
+                        
                         "**Instructions:**\n"
                         "- Always return a valid JSON object **without** any formatting or extra text.\n"
-                        "- The JSON object **must include**: `transcription`, `emotion`, and `depression_indicator`.\n"
-                        "- Example response:\n"
+                        "- The JSON object **must include**: `transcription`, `emotion`, and `depression_score`.\n"
+                        "- The analysis is performed using both:\n"
+                        "  - **Text-based features**: Sentiment, pronoun usage, negative word frequency, linguistic markers.\n"
+                        "  - **Acoustic features**: Speech rate, pitch, intonation, and pauses.\n"
+                        
+                        "**JSON Output Structure:**\n"
+                        "- `transcription`: The transcribed Thai speech.\n"
+                        "- `emotion`: A dictionary of detected emotions with confidence scores.\n"
+                        "- `depression_score`: A float between 0 and 1, where higher values indicate a stronger likelihood of depression-related speech patterns.\n"
+                        "- `error` (if applicable): If no speech is detected, return an error message.\n"
+                        
+                        "**Example Responses:**\n"
+                        "1. Normal Response:\n"
                         "{\n"
-                        '  "transcription": "The transcribed speech here.",\n'
-                        '  "emotion": "neutral",\n'
-                        '  "depression_indicator": false\n'
+                        '  "transcription": "ฉันรู้สึกดีมากวันนี้",\n'
+                        '  "emotion": {"happiness": 0.85, "neutral": 0.10, "sadness": 0.05},\n'
+                        '  "depression_score": 0.05\n'
                         "}\n"
+                        
+                        "2. Depression Detected:\n"
+                        "{\n"
+                        '  "transcription": "ฉันรู้สึกเหนื่อยและไม่มีความหวังเลย",\n'
+                        '  "emotion": {"sadness": 0.75, "neutral": 0.15, "anger": 0.10},\n'
+                        '  "depression_score": 0.85\n'
+                        "}\n"
+                        
+                        "3. No Speech Detected:\n"
+                        "{\n"
+                        '  "error": "No speech detected."\n'
+                        "}\n"
+                        
                         "- **Do not include backticks (`) or Markdown formatting in the response.**"
                     )
-                },
+                    }
+                    ,
                 {
                     "role": "user",
                     "content": [
@@ -78,15 +113,15 @@ async def analyze_user_audio_input(audio_file_path: str) -> dict:
             max_completion_tokens=2048
         )
 
-        # Log raw response for debugging
+        # ✅ Log raw response for debugging
         logger.info(f"Raw API Response: {response}")
 
-        # Check if response contains expected data
+        # ✅ Check if response contains expected data
         if not response.choices or not response.choices[0].message:
             logger.error("OpenAI API returned an empty response or missing choices.")
             return {"error": "OpenAI API returned an unexpected response."}
 
-        # Extract response content
+        # ✅ Extract response content
         assistant_reply = response.choices[0].message.content.strip()
         if not assistant_reply:
             logger.error("Assistant Reply is empty. OpenAI may not have processed the request correctly.")
@@ -137,19 +172,17 @@ async def evaluate_accuracy(audio_files):
         response = openai_responses[idx]
         ground_truth_emotion = ground_truth_labels[idx]  # Get ground truth emotion at the same index
 
-        if "emotion" in response:
-            predicted_emotion = response["emotion"].lower()
-            y_true.append(ground_truth_emotion)
-            y_pred[idx] = predicted_emotion
-            predictions[idx] = response
-
-            print(f"✅ Matched: {ground_truth_emotion} == {predicted_emotion}", flush=True)
+        if "emotion" in response and isinstance(response["emotion"], dict):
+            # ✅ Select the emotion with the highest probability
+            predicted_emotion = max(response["emotion"], key=response["emotion"].get)
         else:
-            predictions[idx] = {"error": "Invalid response", "details": response}
-            print(f"❌ Error processing index {idx} → {response.get('error', 'Unknown error')}", flush=True)
+            predicted_emotion = "unknown"  # Fallback if emotion data is missing
 
-    print("\n===== OpenAI Predictions (First 5) =====", flush=True)
-    print(list(predictions.items()), flush=True)
+        y_true.append(ground_truth_emotion)
+        y_pred[idx] = predicted_emotion
+        predictions[idx] = response
+
+        print(f"✅ Matched: {ground_truth_emotion} == {predicted_emotion}", flush=True)
 
 
     if not y_pred:
