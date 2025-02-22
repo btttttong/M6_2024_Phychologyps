@@ -1,2 +1,11 @@
-python-dotenv
 python-telegram-bot
+openai
+aiohttp
+pydub
+librosa
+numpy
+prefect
+jsonschema
+loguru
+python-dotenv
+cloudinary
