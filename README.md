@@ -1,4 +1,4 @@
-# Tarot Chatbot 🤖🔮
+# PSYCHOLOGYPSY - Tarot Chatbot 🤖🔮
 
 A Telegram chatbot that provides **one tarot card per day** and allows free conversations after that. Built with **Python, OpenAI GPT-4o, and Telegram Bot API**.
 
