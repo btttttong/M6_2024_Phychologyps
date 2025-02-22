@@ -84,11 +84,11 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     last_reveal_date = context.user_data.get("last_reveal_date")
 
-    # ✅ If the user already got a tarot card today, override the response to chit-chat.
+    #   If the user already got a tarot card today, override the response to chit-chat.
     if last_reveal_date == today_date:
         response = {"answer_type": "chit-chat", "response": {"text": "Let's chat! What's on your mind?"}}
     elif "awaiting_thoughts" in context.user_data:
-        # ✅ Instead of chit-chat, immediately analyze user input for a tarot card
+        #   Instead of chit-chat, immediately analyze user input for a tarot card
         response = await analyze_user_input(user_input)
         del context.user_data["awaiting_thoughts"]
     else:
@@ -107,7 +107,7 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         await update.message.reply_photo(photo=image_link, caption=f"🔮 Prediction:\n{reading_response}")
 
-        # ✅ Store last reveal date to prevent multiple tarot cards
+        #   Store last reveal date to prevent multiple tarot cards
         context.user_data["last_reveal_date"] = today_date
 
 
@@ -133,7 +133,7 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
     file_id = voice.file_id
     file_path = os.path.join(VOICE_SAVE_PATH, f"{file_id}.oga")
 
-    # ✅ Download voice file from Telegram
+    #   Download voice file from Telegram
     file = await context.bot.get_file(file_id)
     async with aiohttp.ClientSession() as session:
         async with session.get(file.file_path) as resp:
@@ -143,7 +143,7 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
 
     logger.info(f"Downloaded voice file: {file_path}")
 
-    # ✅ Convert .oga to .wav
+    #   Convert .oga to .wav
     wav_path = file_path.replace(".oga", ".wav")
     conversion_cmd = f"ffmpeg -i {file_path} -ar 16000 -ac 1 {wav_path}"
     
@@ -155,7 +155,7 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text("⚠️ Error processing audio. Please try again.")
         return
 
-    # ✅ Analyze the audio
+    #   Analyze the audio
     response = await analyze_user_audio_input(wav_path)
 
     if "error" in response:
@@ -182,12 +182,12 @@ def main() -> None:
     print("Bot is starting...")
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # ✅ Command Handlers
+    #   Command Handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("aboutme", aboutme))
     application.add_handler(CommandHandler("card", card))
 
-    # ✅ Text & Voice Message Handlers
+    #   Text & Voice Message Handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_input))
     application.add_handler(MessageHandler(filters.VOICE, handle_voice_message))
 

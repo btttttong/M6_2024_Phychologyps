@@ -261,18 +261,18 @@ async def analyze_user_input(user_input: str) -> dict:
 async def analyze_user_audio_input(audio_file_path: str) -> dict:
     """Processes a single audio file asynchronously by transcribing and detecting emotions."""
     try:
-        # ✅ Extract features
+        #   Extract features
         features = extract_features(audio_file_path)
         if not features:
             logger.error(f"Feature extraction failed for {audio_file_path}")
             return {"error": "Feature extraction failed."}
-        print(f"✅ Features extracted is {features}")
+        print(f"  Features extracted is {features}")
 
-        # ✅ Read and encode audio file in base64
+        #   Read and encode audio file in base64
         with open(audio_file_path, "rb") as audio_file:
             audio_data = base64.b64encode(audio_file.read()).decode("utf-8")
 
-        # ✅ Prepare feature data as a string
+        #   Prepare feature data as a string
         feature_text = json.dumps(features, indent=2)
 
         response = client.chat.completions.create(
@@ -328,15 +328,15 @@ async def analyze_user_audio_input(audio_file_path: str) -> dict:
             max_completion_tokens=2048
         )
 
-        # ✅ Log raw response for debugging
+        #   Log raw response for debugging
         logger.info(f"Raw API Response: {response}")
 
-        # ✅ Check if response contains expected data
+        #   Check if response contains expected data
         if not response.choices or not response.choices[0].message:
             logger.error("OpenAI API returned an empty response or missing choices.")
             return {"error": "OpenAI API returned an unexpected response."}
 
-        # ✅ Extract response content
+        #   Extract response content
         assistant_reply = response.choices[0].message.content.strip()
         if not assistant_reply:
             logger.error("Assistant Reply is empty. OpenAI may not have processed the request correctly.")
@@ -344,10 +344,10 @@ async def analyze_user_audio_input(audio_file_path: str) -> dict:
 
         logger.info(f"Assistant Reply: {assistant_reply}")
 
-        # ✅ Remove triple backticks if they exist
+        #   Remove triple backticks if they exist
         assistant_reply = re.sub(r"```json\n(.*?)\n```", r"\1", assistant_reply, flags=re.DOTALL)
 
-        # ✅ Attempt to parse JSON
+        #   Attempt to parse JSON
         return json.loads(assistant_reply)
 
     except json.JSONDecodeError as e:
